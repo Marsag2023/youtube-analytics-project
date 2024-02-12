@@ -8,7 +8,7 @@ class Channel:
     Класс для ютуб-канала
     """
     api_key: str = os.getenv('YT_API_KEY')
-    youtube = build('youtube', 'v3', developerKey=api_key)
+    _youtube = build('youtube', 'v3', developerKey=api_key)
 
     def __init__(self, channel_id: str) -> None:
         """
@@ -16,7 +16,7 @@ class Channel:
         Дальше все данные будут подтягиваться по API.
         """
         self.__channel_id = channel_id
-        self.channel = self.youtube.channels().list(id=self.__channel_id, part='snippet,statistics').execute()
+        self.channel = None
 
     @property
     def channel_id(self):
@@ -30,21 +30,29 @@ class Channel:
         """
         Возвращает объект для работы с YouTube API
         """
-        return cls.youtube
+        return cls._youtube
 
+    def get_info_from_channel(self):
+        """
+        Получаем информацию о канале
+        """
+        if self.channel is None:
+            self.channel = self.get_service().channels().list(id=self.__channel_id, part='snippet,statistics').execute()
+        return self.channel
     def print_info(self) -> None:
         """
         Выводит словарь в json-подобном удобном формате с отступами
         """
-        channel = self.youtube.channels().list(id=self.__channel_id, part='snippet,statistics').execute()
-        print(json.dumps(channel, indent=2, ensure_ascii=False))
+        self.get_info_from_channel()
+
+        print(json.dumps(self.channel, indent=2, ensure_ascii=False))
 
     @property
     def title(self):
         """
         Возвращает название канала
         """
-#        self.title = self.channel['items'][0]['snippet']['title']
+        self.get_info_from_channel()
         return self.channel['items'][0]['snippet']['title']
 
     @property
@@ -52,7 +60,7 @@ class Channel:
         """
         Возвращает описание канала
         """
-#       self.description =self.channel['items'][0]['snippet']['description']
+        self.get_info_from_channel()
         return self.channel['items'][0]['snippet']['description']
 
     @property
@@ -60,6 +68,7 @@ class Channel:
         """
         Возвращает ссылку на канал
         """
+        self.get_info_from_channel()
         return f"https://www.youtube.com/channel/{self.channel['items'][0]['id']}"
 
     @property
@@ -67,13 +76,15 @@ class Channel:
         """
         Возвращает количество подписчиков
         """
-        return self.channel['items'][0]['statistics']['subscriberCount']
+        self.get_info_from_channel()
+        return int(self.channel['items'][0]['statistics']['subscriberCount'])
 
     @property
     def video_count(self):
         """
         Возвращает количество видео
         """
+        self.get_info_from_channel()
         return self.channel['items'][0]['statistics']['videoCount']
 
     @property
@@ -81,7 +92,57 @@ class Channel:
         """
         Возвращает количество просмотров видео
         """
+        self.get_info_from_channel()
         return self.channel['items'][0]['statistics']['viewCount']
+
+    def __str__(self):
+        """
+        метод __str__, возвращающий название и ссылку на канал
+        по шаблону <название_канала> (<ссылка_на_канал>)
+        """
+        return f'{self.title}  {self.url}'
+
+    def __add__(self, other):
+        """
+    	Метод сложения
+        """
+        return self.subscriber_count + other.subscriber_count
+
+    def __sub__(self, other):
+        """
+    	Метод вычитания
+        """
+        return self.subscriber_count - other.subscriber_count
+
+    def __gt__(self, other):
+        """
+    	Метод для операции сравнения «больше»
+        """
+        return self.subscriber_count > other.subscriber_count
+
+    def __ge__(self, other):
+        """
+        Метод для операции сравнения «больше или равно»
+        """
+        return self.subscriber_count >= other.subscriber_count
+
+    def __it__(self, other):
+        """
+        Метод для операции сравнения «меньше»
+        """
+        return self.subscriber_count < other.subscriber_count
+
+    def __le__(self, other):
+        """
+        Метод для операции сравнения «меньше или равно»
+        """
+        return self.subscriber_count <= other.subscriber_count
+
+    def __eq__(self, other):
+        """
+        Метод определяет поведение оператора равенства, ==
+        """
+        return self.subscriber_count == other.subscriber_count
 
     def to_json(self, file_name):
         """
