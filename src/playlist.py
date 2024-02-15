@@ -31,15 +31,16 @@ class PlayList(Channel):
         """
         Выводим видеоролики из плейлиста с длительностью
         """
-        return self.get_service().videos().list(part='contentDetails,statistics',
-                                                         id=','.join(self.video_ids)).execute()
+        return self.get_service().videos().list(part='contentDetails,statistics'
+                                        ,id=','.join(self.video_ids)).execute()
 
     @property
     def title(self):
         """
         Определяем название видео
         """
-        return self.get_service().playlists().list(id=self.playlist_id, part='snippet').execute()["items"][0]["snippet"]["title"]
+        return (self.get_service().playlists().list(id=self.playlist_id, part='snippet')
+                .execute())["items"][0]["snippet"]["title"]
 
     @property
     def url(self):
