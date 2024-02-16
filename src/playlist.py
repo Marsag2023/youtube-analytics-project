@@ -1,12 +1,23 @@
 import datetime
 import isodate
-from src.channel import Channel
+import os
+from googleapiclient.discovery import build
 
 
-class PlayList(Channel):
+class PlayList:
+
+    api_key: str = os.getenv('YT_API_KEY')
+    _youtube = build('youtube', 'v3', developerKey=api_key)
 
     def __init__(self, playlist_id):
         self.playlist_id = playlist_id
+
+    @classmethod
+    def get_service(cls):
+        """
+        Возвращает объект для работы с YouTube API
+        """
+        return cls._youtube
 
     @property
     def playlist_videos(self):
