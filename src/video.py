@@ -14,8 +14,8 @@ class Video:
         Экземпляр инициализирует id канала.
         Дальше все данные будут подтягиваться по API.
         """
-        self.video_id = video_id
         self.playlists = None
+        self.video_id = video_id
 
     @classmethod
     def get_service(cls):
@@ -28,7 +28,7 @@ class Video:
         """
         Получает информацию по видеоролику
         """
-        if self. playlists is None:
+        if self.playlists is None:
             self.playlists = self.get_service().videos().list(part="snippet,statistics", id=self.video_id).execute()
         return self.playlists
 
@@ -38,7 +38,10 @@ class Video:
         Возвращает название канала
         """
         self.get_info_from_playlists()
-        return self.playlists['items'][0]['snippet']['title']
+        try:
+            return self.playlists['items'][0]['snippet']['title']
+        except IndexError:
+            return None
 
     @property
     def description(self):
@@ -46,7 +49,10 @@ class Video:
         Возвращает описание канала
         """
         self.get_info_from_playlists()
-        return self.playlists['items'][0]['snippet']['description']
+        try:
+            return self.playlists['items'][0]['snippet']['description']
+        except IndexError:
+            return None
 
     @property
     def url(self):
@@ -54,7 +60,10 @@ class Video:
         Возвращает ссылку на канал
         """
         self.get_info_from_playlists()
-        return f"https://www.youtube.com/watch?v={self.video_id}"
+        try:
+            return f"https://www.youtube.com/watch?v={self.video_id}"
+        except IndexError:
+            return None
 
     @property
     def view_count(self):
@@ -62,7 +71,10 @@ class Video:
         Возвращает количество подписчиков
         """
         self.get_info_from_playlists()
-        return int(self.playlists['items'][0]['statistics']['viewCount'])
+        try:
+            return int(self.playlists['items'][0]['statistics']['viewCount'])
+        except IndexError:
+            return None
 
     @property
     def like_count(self):
@@ -70,7 +82,10 @@ class Video:
         Возвращает количество видео
         """
         self.get_info_from_playlists()
-        return self.playlists['items'][0]['statistics']['likeCount']
+        try:
+            return self.playlists['items'][0]['statistics']['likeCount']
+        except IndexError:
+            return None
 
     def __str__(self):
         return f"{self.title}"
